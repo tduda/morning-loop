@@ -45,11 +45,21 @@ param([switch]$IfMissing)
 # ---------------------------------------------------------------------------------------------
 # FILL: absolute paths only. Task Scheduler runs with a minimal environment and no profile.
 # ---------------------------------------------------------------------------------------------
-$WorkDir    = "<PATH TO YOUR WORKSPACE>"                              # FILL: the folder you ran setup-workspace.sh on
+$WorkDir    = "<PATH TO YOUR WORKSPACE>"                              # FILL: the folder you ran setup.py on
 $Claude     = "$env:USERPROFILE\.local\bin\claude.exe"                # FILL if claude lives elsewhere
 $Python     = "python"                                                # FILL if python is not on the task's PATH
 $Config     = ""                                                      # optional: absolute path of your morning/config.yml, if it lives elsewhere
 $TaskName   = "MorningLoop-Prep"                                      # must match register-prep-task.ps1
+
+# Optional: connector tools the unattended run may call without asking. None by default; with
+# none listed the run still finishes, with a thinner brief (an unapproved connector call is
+# denied, not prompted). READ-ONLY tools only, by full name mcp__<server>__<tool>. Never
+# "mcp__<server>" or "mcp__<server>__*": those approve write tools too, in a run that reads
+# inbox and chat, which anyone can write into.
+$AllowedConnectorTools = @(
+    # "mcp__atlassian__getJiraIssue"               # examples only: tool names
+    # "mcp__atlassian__searchJiraIssuesUsingJql"   # differ by server, check yours
+)
 
 # Optional VPN gate. Internal MCP sources (Jira/Confluence on a lab network) may only resolve
 # inside a VPN. Leave both empty to skip the check entirely.
@@ -470,8 +480,8 @@ try {
           ' That is you. Never abort, wait, or skip because of it. Only a SECOND run-prep wrapper' +
           ' (a skipped-because-a-run-is-in-progress line in runner.log) is a real race.'
 
-        $Allowed = @(Get-EngineAllowedTools (Join-P $WorkDir 'morning' 'config.yml'))
-        Write-RunLog "permissions: $($Allowed.Count) engine rules; no connector tools pre-approved"
+        $Allowed = @(Get-EngineAllowedTools (Join-P $WorkDir 'morning' 'config.yml')) + @($AllowedConnectorTools)
+        Write-RunLog "permissions: $($Allowed.Count - @($AllowedConnectorTools).Count) engine rules; $(@($AllowedConnectorTools).Count) connector tool(s) pre-approved $($AllowedConnectorTools -join ' ')"
         $ClaudeArgs = @('--print', "`"$PrepPrompt`"", '--permission-mode', 'acceptEdits', '--allowedTools') +
             @($Allowed | ForEach-Object { "`"$_`"" })
 

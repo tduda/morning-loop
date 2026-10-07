@@ -32,7 +32,7 @@
 # install instead.
 export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-WORKDIR="<PATH TO YOUR WORKSPACE>"   # FILL: the folder you ran setup-workspace.sh on
+WORKDIR="<PATH TO YOUR WORKSPACE>"   # FILL: the folder you ran setup.py on
 MODEL="${MORNING_MODEL:-}"           # optional pin, e.g. github-copilot/claude-opus-5
 LOG="$WORKDIR/morning/state/runner.log"
 cd "$WORKDIR" || { echo "$(date) FAILED cd $WORKDIR" >> "$LOG"; exit 1; }

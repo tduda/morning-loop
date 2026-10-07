@@ -21,6 +21,16 @@ A lock means the two can never run at the same time as each other, or as a `/mor
 
 Every runner waits for the network before starting, keeps the machine awake while it works, counts only awake time against its time limit, delivers the brief itself if the run forgot to, and records whether the brief was on time.
 
+## What the unattended run may do without asking
+
+Nobody is there to answer a permission prompt at 07:52, so the Claude Code runner says up front what the run may do (`--allowedTools`), and Claude Code denies everything else rather than waiting. Pre-approved by default: writing the brief and drafts inside the workspace (`--permission-mode acceptEdits`), and the engine scripts `/morning` calls, one rule per script. **No connector tool is pre-approved by default.**
+
+To let the run read your tools, list their **read-only** tools in `MORNING_ALLOWED_TOOLS` (Mac/Linux) or `$AllowedConnectorTools` (Windows) near the top of your filled-in runner, one full name per line (`mcp__<server>__<tool>`, where `<server>` is the name you gave the connector in Claude Code). Leave out anything that creates, posts, sends or edits. Don't use `mcp__<server>` or `mcp__<server>__*`: those approve that server's write tools too, and this run reads your inbox and chat, which anyone can write into. Allow rules already in your Claude Code settings still apply.
+
+With nothing listed, the run still finishes, with a thinner brief: each connector read is denied and the brief is made from what it could read. The runner log's `permissions:` line shows what was pre-approved for each run.
+
+**OpenCode and Codex** don't take this list. The OpenCode runner uses whatever your OpenCode config allows, and the Codex runner runs `codex exec --full-auto`, which lets Codex write and run commands inside the workspace without asking. Until you've set those clients' own permissions to read-only for connectors, connect only read-only tools (or read-only accounts) to them before you schedule a run. If you're unsure, schedule with Claude Code.
+
 ## Mac
 
 Run these from your workspace folder (the one containing `morning/`).

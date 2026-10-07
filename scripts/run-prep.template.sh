@@ -6,7 +6,19 @@
 # launchd gives a minimal environment; set PATH explicitly for claude + node + jq + python.
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-WORKDIR="<PATH TO YOUR WORKSPACE>"   # FILL: the folder you ran setup-workspace.sh on
+WORKDIR="<PATH TO YOUR WORKSPACE>"   # FILL: the folder you ran setup.py on
+
+# FILL (optional): connector tools the unattended run may call without asking. None by
+# default; with none listed the run still finishes, with a thinner brief, because in
+# --print mode a connector call that isn't approved is denied, not prompted. List
+# READ-ONLY tools by full name, mcp__<server>__<tool>, where <server> is the name you
+# gave the connector in Claude Code. Never "mcp__<server>" or "mcp__<server>__*": those
+# approve that server's write tools too (create an issue, post, send mail), in a run
+# that reads inbox and chat, which anyone can write into.
+MORNING_ALLOWED_TOOLS=(
+  # "mcp__atlassian__getJiraIssue"               # examples only: tool names
+  # "mcp__atlassian__searchJiraIssuesUsingJql"   # differ by server, check yours
+)
 LOG="$WORKDIR/morning/state/runner.log"
 cd "$WORKDIR" || { echo "$(date) FAILED cd $WORKDIR" >> "$LOG"; exit 1; }
 
@@ -186,8 +198,8 @@ echo "===== $(date '+%Y-%m-%d %H:%M:%S') starting /morning --prep$MODE_NOTE ====
 # interpreter setup.py found (owner.python in config.yml), so engine calls don't stall
 # on a permission prompt on a fresh account. No MCP wildcard: Claude Code ignores a
 # bare "mcp__*", and "mcp__<server>" would pre-approve that server's write tools too,
-# in a run that reads text anyone can write into. Connector reads are not
-# pre-approved here; on a fresh account the unattended brief is thinner, not stuck.
+# in a run that reads text anyone can write into. Connector reads are pre-approved
+# only if you list them in MORNING_ALLOWED_TOOLS at the top.
 #
 # Bounded with a watchdog rather than `timeout`, which macOS does not ship. An
 # unbounded headless invocation once burned 43 minutes failing to authenticate
@@ -209,7 +221,8 @@ ALLOWED=()
 for s in asks coach doctor notify onboard ontime reconcile_ledger sharpen shipped tickets trust; do
   ALLOWED+=("Bash($PY_CFG morning/engine/$s.py *)")
 done
-echo "permissions: ${#ALLOWED[@]} engine rules for '$PY_CFG'; no connector tools pre-approved" >> "$LOG"
+ALLOWED+=("${MORNING_ALLOWED_TOOLS[@]}")
+echo "permissions: $(( ${#ALLOWED[@]} - ${#MORNING_ALLOWED_TOOLS[@]} )) engine rules for '$PY_CFG'; ${#MORNING_ALLOWED_TOOLS[@]} connector tool(s) pre-approved${MORNING_ALLOWED_TOOLS[*]:+: ${MORNING_ALLOWED_TOOLS[*]}}" >> "$LOG"
 
 
 # (The single-shot "no network yet" check that stood here moved up into the

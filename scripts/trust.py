@@ -97,7 +97,7 @@ WORKSPACE_MARKERS = ("morning/state",)
 
 def repo_root(start: pathlib.Path | None = None) -> pathlib.Path:
     # The workspace you run from wins. The scripts are LINKED into a
-    # workspace (scripts/setup-workspace.sh), so resolving __file__ lands in the
+    # workspace (scripts/setup.py), so resolving __file__ lands in the
     # package clone and its .git, and every stamp and packet would be written into
     # the package instead of the workspace. Found by a fresh-install test.
     if start is None:
