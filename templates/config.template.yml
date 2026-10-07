@@ -1,0 +1,113 @@
+# Morning Loop config. /onboard fills this in with you, stage by stage.
+# Every source starts OFF. A stage turns one on after its test read passes, so this
+# file never claims a connection that hasn't been proven.
+
+owner:
+  name: ""                      # stage 1
+  role: ""                      # stage 1, in your words: "engineering manager", "product designer"
+  role_profile: ""              # stage 1: a preset from roles/ (or empty for "general")
+  timezone: ""                  # stage 1, e.g. Europe/London. The loop's day starts in YOUR morning
+  workday_start: "09:00"        # stage 1. The brief is made before this, when your computer is on
+  client: claude                # claude | opencode | codex
+  python: python3               # Python interpreter: py -3 (Windows) | python3 (Mac/Linux) | python. Auto-detected at install
+
+# ---------------------------------------------------------------------------
+# SOURCES. One block per stage. `enabled: false` means the loop does not read
+# it and the brief does not mention it. `tool` is a guide name in connectors/.
+# ---------------------------------------------------------------------------
+sources:
+  tasks:                        # stage 2
+    enabled: false
+    tool: ""                    # jira | linear | github | notion
+    scope: ""                   # what counts as yours: a project, team, repo list or database
+    mine_first: true            # your own items before the team's
+    stale_after_days: 3         # an item with no movement this long is flagged as stuck
+  calendar:                     # stage 3
+    enabled: false
+    tool: ""                    # google-calendar | outlook-calendar
+    scope: "primary"
+    prep_lead_days: 1           # prep a meeting this many days ahead
+  meetings:                     # stage 3
+    enabled: false
+    tool: ""                    # granola | confluence | notion | notes-folder
+    scope: ""                   # e.g. a folder path, a parent page, a notes database
+  inbox:                        # stage 4
+    enabled: false
+    tool: ""                    # gmail | outlook-mail
+    scope: "inbox, last 24h"
+  chat:                         # stage 4
+    enabled: false
+    tool: ""                    # slack | teams | mattermost
+    scope: ""                   # channels to watch; mentions and DMs are always read
+  metrics:                      # stage 7, optional
+    enabled: false
+    tool: ""                    # amplitude | ga4 | mixpanel | posthog
+    projects: []                # every project to search; an object is never called absent on one
+    pinned: []                  # the metrics the brief prints every day, e.g.
+    # - {name: "Signups", query: "<chart id or saved query>", direction: up, alert_pct: 10}
+
+# ---------------------------------------------------------------------------
+# JOBS. Your recurring work, added in stage 6. Each names a skill that ships in
+# skills/. A job with no skill stays commented out, with the reason, so this file
+# never describes coverage you don't have.
+#   when:   daily | weekly (+ weekday) | calendar | task_state | meeting_new | metric_move
+#   output: auto (read-only, shown in the brief) | draft (you review) | decide | human
+# ---------------------------------------------------------------------------
+jobs:
+  - id: today
+    when: daily
+    skill: today
+    output: auto
+    sends_to: none
+  - id: brief_health
+    when: daily
+    skill: null                 # inline: did yesterday's and today's brief actually land?
+    output: decide
+    sends_to: none
+
+# ---------------------------------------------------------------------------
+# SCHEDULE AND DELIVERY. Stage 5. The brief is made on your computer, so it
+# arrives when your computer is on: at the scheduled time, or the first time you
+# open it that morning (the catch-up keeps trying until noon).
+# ---------------------------------------------------------------------------
+schedule:
+  enabled: false                # stage 5
+  time: "07:52"
+  weekdays: [mon, tue, wed, thu, fri]
+  catchup_until: "12:00"
+delivery:
+  channel: macos                # macos (notification + page) | file (page only) | slack | mattermost (webhook)
+                                # the webhook URL lives in your environment (MORNING_SLACK_WEBHOOK), never in this file
+
+# ---------------------------------------------------------------------------
+# SAFETY. Do not loosen these. Reading and drafting are local; anything that
+# leaves your machine needs your per-item yes, every time.
+# ---------------------------------------------------------------------------
+permissions:
+  unattended_allowed: [read_sources, write_local_files, draft_locally]
+  never_auto: [create_task, edit_task, send_email, post_message, publish_page, edit_calendar]
+
+trust:
+  enabled: true
+  verifiers: auto               # independent verifier agents where the client supports them
+  brief_claims_census: true     # every claim in the brief marked [V] verified, [R] reported, [I] inferred, [C] carried
+
+stall:
+  thresholds:                   # days without movement before a task counts as stuck, by state
+    in_progress: 3
+    in_review: 2
+    blocked: 1
+
+quality:
+  max_revisions: 1              # a draft that fails its checks gets one revision before it reaches you as NEEDS EDIT
+
+coaching:
+  enabled: true                 # one short nudge a morning, from morning/state/coach/plan.md
+  min_gap_days_same_thread: 2
+
+health:
+  on_time:
+    grace_minutes: 15
+
+paths:                          # relative to your folder; change only if you know why
+  root: morning

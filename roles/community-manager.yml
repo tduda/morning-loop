@@ -1,0 +1,19 @@
+role: community-manager
+title: Community Manager
+lens:
+  leads_with: "launches that need a communication decision, community threads waiting for you, and product changes users will ask about"
+  top_of_list: "the launch or community issue where silence costs the most trust today"
+  voice: "audience-first: who is affected, what they will notice, what to say"
+sections:
+  on: [top_of_list, today, needs_reply, meetings, your_work, ready_for_review, questions, commitments, coaching, health]
+  off: [pulse]
+senses:
+  first: [chat, tasks, inbox, meetings]
+  scope: "communication-decision tickets, launches with a date, and community channels"
+suggested_jobs:   # seeds config jobs: at setup; /onboard stage 6 tunes them to what you really do
+  - {id: today, when: daily, skill: today, output: auto, sends_to: none}
+  - {id: inbox_triage, when: daily, skill: inbox-triage, output: auto, sends_to: none}
+  - {id: meeting_debrief, when: meeting_new, skill: meeting-debrief, output: draft, sends_to: none}
+  - {id: weekly_update, when: weekly, weekday: fri, skill: weekly-update, output: draft, sends_to: none}
+gaps:
+  - "announcement and FAQ drafts in your house voice (needs your examples first)"

@@ -1,0 +1,19 @@
+role: designer
+title: Product Designer
+lens:
+  leads_with: "design work the sprint needs from you, open feedback on your designs, and handoffs engineers are waiting on"
+  top_of_list: "the design decision or handoff that is blocking a build or a refinement soonest"
+  voice: "decision and feedback first: what was asked, by whom, by when"
+sections:
+  on: [top_of_list, today, your_work, meetings, needs_reply, ready_for_review, questions, commitments, coaching, health]
+  off: [pulse]
+senses:
+  first: [tasks, chat, meetings]
+  scope: "tickets in design states or assigned to you, and threads that mention you"
+suggested_jobs:   # seeds config jobs: at setup; /onboard stage 6 tunes them to what you really do
+  - {id: today, when: daily, skill: today, output: auto, sends_to: none}
+  - {id: meeting_prep, when: calendar, skill: meeting-prep, output: draft, sends_to: none}
+  - {id: meeting_debrief, when: meeting_new, skill: meeting-debrief, output: draft, sends_to: none}
+  - {id: inbox_triage, when: daily, skill: inbox-triage, output: auto, sends_to: none}
+gaps:
+  - "design feedback digest from your design tool (needs its connector and a skill of your own)"

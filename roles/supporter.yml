@@ -1,0 +1,18 @@
+role: supporter
+title: Support
+lens:
+  leads_with: "escalations waiting on product, changes going live that users will ask about, and known issues with no answer yet"
+  top_of_list: "the user-facing issue with the most people affected and no answer yet"
+  voice: "user-first: what users see, what to tell them, who owns the fix"
+sections:
+  on: [top_of_list, today, needs_reply, your_work, meetings, ready_for_review, questions, commitments, coaching, health]
+  off: [pulse]
+senses:
+  first: [inbox, chat, tasks]
+  scope: "support escalations, launch tickets with a date, bugs with user reports"
+suggested_jobs:   # seeds config jobs: at setup; /onboard stage 6 tunes them to what you really do
+  - {id: today, when: daily, skill: today, output: auto, sends_to: none}
+  - {id: inbox_triage, when: daily, skill: inbox-triage, output: auto, sends_to: none}
+  - {id: stall_check, when: task_state, skill: stall-check, output: draft, sends_to: none}
+gaps:
+  - "support briefing drafts in your team's language (needs examples first)"

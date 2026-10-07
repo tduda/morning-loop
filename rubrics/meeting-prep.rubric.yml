@@ -1,0 +1,55 @@
+schema_version: 1
+extends: _base
+task: "A one-page prep note for one meeting today or tomorrow: purpose, each attendee's open items with the owner, decisions needed, three questions, and what happened last time"
+calibration_target: "the owner reads it in the two minutes before the meeting and walks in knowing what they owe, what they are owed, and what to ask"
+created: 2026-10-05
+
+goldens: []
+# None shipped. Golden 1 is the first prep note the owner used unchanged; save it (or the owner's own
+# hand-written prep notes) to morning/examples/meeting-prep/ and recalibrate.
+
+known_reject:
+  - "A prep note that: states a purpose the invite never gave; lists 'discuss roadmap' as a decision with no decider; gives every attendee a line including those with nothing open; asks 'any blockers?', 'how is everyone?' and 'anything else?'; quotes an attendee from a summary-level note; and runs to two pages. Must fail purpose_sourced, decisions_real_and_owned, questions_specific (gate), open_items_sourced, no_quotes_from_summaries (block) and short_enough."
+
+checks:
+  - id: purpose_sourced
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "The purpose line cites where it came from (agenda, invite description, last note of this meeting) or reads 'not stated'. A purpose inferred from the title alone and stated as fact fails."
+    rationale: "An invented purpose sends the owner into the wrong meeting."
+
+  - id: open_items_sourced
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Every open item under an attendee says which way it runs (owner owes them, or they owe the owner) and names its source. Attendees with nothing open are left out."
+    rationale: "The value of prep is knowing what is owed in each direction; a list of everyone with nothing to say is noise."
+
+  - id: decisions_real_and_owned
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Each decision needed points to something in the sources that is waiting on a choice, and names who decides. If none was found, the section says so."
+    rationale: "A topic is not a decision. Padding this section is how a prep note invents urgency."
+
+  - id: questions_specific
+    type: binary_llm
+    severity: gate
+    scope: voice
+    statement: "Each question is addressed to a named attendee, tied to an open item or decision, and closed where possible. Generic questions ('any blockers?', 'thoughts?') fail. Fewer than three real questions with a note saying so passes."
+    rationale: "The questions are the part of the note the owner actually uses in the room."
+
+  - id: no_quotes_from_summaries
+    type: binary_llm
+    severity: block
+    scope: data
+    statement: "No words are put in quotation marks against a named person unless the source is a verbatim transcript or message."
+    rationale: "A summary paraphrases. Quoting it against a person puts words in their mouth."
+
+  - id: short_enough
+    type: structural
+    severity: normal
+    scope: format
+    statement: "The note fits on one screen: about 25 lines or fewer, excluding the header."
+    rationale: "It is read in the minutes before a meeting. Length defeats the purpose."

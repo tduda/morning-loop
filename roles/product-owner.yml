@@ -1,0 +1,22 @@
+role: product-owner
+title: Product Owner / Product Manager
+lens:
+  leads_with: "the sprint goal and anything that puts it at risk today, then decisions only you can make"
+  top_of_list: "the one decision or unblock that moves the sprint goal or a quarterly goal most today"
+  voice: "decision-first: what changed, what it means for the goal, what to do"
+sections:
+  on: [top_of_list, today, your_work, meetings, needs_reply, ready_for_review, questions, commitments, pulse, coaching, health]
+  off: []
+senses:
+  first: [tasks, meetings, inbox, chat, metrics]
+  scope: "your team board, scoped by sources.tasks.scope"
+suggested_jobs:   # seeds config jobs: at setup; /onboard stage 6 tunes them to what you really do
+  - {id: today, when: daily, skill: today, output: auto, sends_to: none}
+  - {id: meeting_prep, when: calendar, skill: meeting-prep, output: draft, sends_to: none}
+  - {id: meeting_debrief, when: meeting_new, skill: meeting-debrief, output: draft, sends_to: none}
+  - {id: weekly_update, when: weekly, weekday: fri, skill: weekly-update, output: draft, sends_to: none}
+  - {id: inbox_triage, when: daily, skill: inbox-triage, output: auto, sends_to: none}
+  - {id: stall_check, when: task_state, skill: stall-check, output: draft, sends_to: none}
+  - {id: metrics_pulse, when: daily, skill: metrics-pulse, output: auto, sends_to: none}
+gaps:
+  - "sprint or release report in your house format (add your own skill and examples)"

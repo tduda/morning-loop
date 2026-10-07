@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  com.morning-loop.prep.plist — the weekday schedule for the unattended pre-run.
+
+  Why this template exists
+  -----------------------
+  The package told you to schedule run-prep.sh with launchd, and the adopt
+  checklist tells you to verify `launchctl list | grep -i morning` returns
+  exactly one entry — but it never shipped the thing that creates that entry.
+  Every adopter had to invent it. This is that missing piece.
+
+  FILL: replace __RUN_PREP_PATH__ and __LOG_PATH__ with absolute paths.
+  There is no ~ expansion in a plist; a relative or ~-prefixed path silently
+  never runs, which is the failure mode this package exists to eliminate.
+
+  Install (per-user, no sudo):
+      cp com.morning-loop.prep.plist ~/Library/LaunchAgents/
+      launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.morning-loop.prep.plist
+      launchctl list | grep -i morning        # expect two entries once the catch-up
+                                              # job is loaded too (see SETUP-DELIVERY.md)
+
+  Older macOS, or if bootstrap is unavailable:
+      launchctl load ~/Library/LaunchAgents/com.morning-loop.prep.plist
+
+  Remove:
+      launchctl bootout gui/$UID/com.morning-loop.prep
+      rm ~/Library/LaunchAgents/com.morning-loop.prep.plist
+
+  Load com.morning-loop.catchup.plist next to this one: it retries until a
+  brief has landed, which is what makes the brief arrive on a laptop. More than
+  those two entries means runs racing. If you migrated from an older workspace path, boot the
+  old label out before loading this one.
+
+  StartCalendarInterval fires in the machine's LOCAL time, not the timezone in
+  your config. If those disagree, the config is the one that is wrong.
+
+  A launchd wake is a DarkWake: roughly 45 seconds before macOS sleeps again.
+  run-prep.sh holds the machine awake with `caffeinate -i -w $$`; do not remove
+  it, or the run dies mid-flight and reports nothing.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.morning-loop.prep</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>__RUN_PREP_PATH__</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>52</integer></dict>
+        <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>52</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>52</integer></dict>
+        <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>52</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>52</integer></dict>
+    </array>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>__LOG_PATH__</string>
+    <key>StandardErrorPath</key>
+    <string>__LOG_PATH__</string>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
+</dict>
+</plist>

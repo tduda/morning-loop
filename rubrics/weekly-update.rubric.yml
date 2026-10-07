@@ -1,0 +1,56 @@
+schema_version: 1
+extends: _base
+task: "A weekly update for a manager or stakeholders: what moved, what is blocked, what is next, and pinned numbers when metrics are on, in the owner's voice"
+calibration_target: "the named audience reads it as the owner's own update, learns what changed and what they need to do, and the owner sends it with at most a light edit"
+created: 2026-10-05
+
+goldens: []
+# The goldens for this rubric are the owner's past updates in morning/examples/weekly-update/. With none
+# saved, voice_matches_examples grades against the generic template and the draft must say so. Add the
+# first update the owner sent unchanged as golden 1.
+
+known_reject:
+  - "An update that: lists 'worked on onboarding flow' and 'met with design' as achievements; says signups 'grew about 20%' with no source; drops two of last week's three 'next' items without a word; describes a blocker as 'some delays' with no name; uses headers and bullet styling the owner's examples never use; and opens with 'I am pleased to share'. Must fail outcomes_not_activity, numbers_sourced (block), last_week_closed_out, blockers_named, and voice_matches_examples (gate)."
+
+checks:
+  - id: outcomes_not_activity
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Items under 'what moved' are outcomes the sources show as changed (closed, shipped, decided, agreed), not activity ('worked on', 'met with', 'looked into')."
+    rationale: "Activity tells the reader nothing about progress, and it inflates the week."
+
+  - id: numbers_sourced
+    type: structural
+    severity: block
+    scope: data
+    statement: "Every number names its window and source (metrics-pulse row, task count query). No rounded, estimated or remembered figures. If metrics are off, there is no numbers section at all."
+    rationale: "A number in a weekly update gets repeated upward. A wrong one travels."
+
+  - id: last_week_closed_out
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "When a previous update exists, each item it listed as 'next' has an outcome here: done, moved (with new date), or dropped (with reason)."
+    rationale: "Silently dropped commitments are what erode a reader's trust in the update."
+
+  - id: blockers_named
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Each blocker names who or what it waits on and since when, and says what would help if the reader can help."
+    rationale: "A vague blocker cannot be acted on, which is the only reason to mention it."
+
+  - id: goal_linked
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Moved and next items are grouped by, or tied to, the goals in the owner's profile where a link exists."
+    rationale: "The reader cares about progress on goals, not a task list."
+
+  - id: voice_matches_examples
+    type: binary_llm
+    severity: gate
+    scope: voice
+    statement: "Length, structure, greeting, formality and sentence rhythm match the owner's saved examples in morning/examples/weekly-update/. With no examples, the draft is plain first person and its header says the voice is generic."
+    rationale: "The ship test for this skill. An update that does not sound like its author gets rewritten, which means the loop saved nothing."

@@ -1,0 +1,76 @@
+schema_version: 1
+extends: _base
+task: "Stalled tasks turned into typed next steps: per stall, state, days in state, report count, a why from history, and exactly one SOLVE or ASK; plus a process finding once something has been reported three times"
+calibration_target: "the owner can send each ASK today to someone who can answer it and approve each SOLVE without deciding anything; a stall that comes back tomorrow in the same words has failed"
+created: 2026-10-05
+
+goldens: []
+# None shipped. Golden 1 is the first run where an ASK was answered and the stall closed. Save it to
+# morning/examples/stall-check/ and recalibrate.
+
+known_reject:
+  - "A stall list that: says 'the payment task is very stale (40 days)' with no SOLVE or ASK; dates a stall from the updated field that a label edit touched yesterday; lists a backlog item that is 90 days old; includes two tasks from another team because they share a project; asks 'the team' who should review; repeats yesterday's lines word for word with no report count; and lists a task the owner parked by decision last week. Must fail every_stall_is_solve_or_ask (gate), age_from_history (block), ask_to_resolvable_person (block), threshold_matched_to_state, scope_verified, carry_count_and_escalation, not_repeated_verbatim, and parked_excluded."
+
+checks:
+  - id: every_stall_is_solve_or_ask
+    type: structural
+    severity: gate
+    scope: format
+    statement: "Every stall carries a SOLVE (a mechanical action) or an ASK (a named person and a closed question). A stall emitted as an observation fails."
+    rationale: "Detecting a stall is not the job; closing it is. This is the ship test for the skill."
+
+  - id: ask_to_resolvable_person
+    type: binary_llm
+    severity: block
+    scope: data
+    statement: "Each ASK goes to a person who can actually answer it. 'The team', an unfilled role, or the assignee named by default when the answer sits elsewhere all fail. If the right person is unknown, the question is 'who owns {step}?' addressed to whoever can name them."
+    rationale: "Asking someone who does not hold the answer records the stall as escalated while nothing moves."
+
+  - id: solve_is_mechanical
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Nothing typed SOLVE needs a judgement, priority call or consent. Anything that does is an ASK."
+    rationale: "A SOLVE gets waved through on approval. A hidden decision inside one becomes a decision nobody made."
+
+  - id: age_from_history
+    type: binary_llm
+    severity: block
+    scope: data
+    statement: "Days in state come from the status-change history, not the updated field, and a field or label edit is not treated as movement. If history was unavailable, every line says its age may be wrong."
+    rationale: "The updated field moves on every edit. Using it makes old stalls look fresh and fresh ones look old."
+
+  - id: threshold_matched_to_state
+    type: structural
+    severity: normal
+    scope: data
+    statement: "Every listed task is past the threshold for its own state, using days in that state, not task age. A backlog item listed as a stall fails."
+    rationale: "Age alone is not a stall. Filling the list with backlog is how the list stops being read."
+
+  - id: scope_verified
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Every task is inside the configured scope filter, and the header shows the scoped and unscoped counts when the project is shared."
+    rationale: "Another team's stall is their ask. Raising it spends credibility the owner needs for their own."
+
+  - id: carry_count_and_escalation
+    type: structural
+    severity: normal
+    scope: format
+    statement: "Each stall shows 'reported {M}x'. At the second report the ASK also goes to the person's lead; at three or more a Process finding section names what is structurally broken."
+    rationale: "Escalate the ask, do not repeat it."
+
+  - id: not_repeated_verbatim
+    type: binary_llm
+    severity: normal
+    scope: voice
+    statement: "No stall repeats its previous report word for word. It is escalated, or it says plainly it has been asked {M} times with no answer."
+    rationale: "Identical text trains the reader to skip the section."
+
+  - id: parked_excluded
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Tasks parked by a recorded decision are not listed, and the header says how many were excluded. If decisions could not be read, the header says so."
+    rationale: "Work stopped on purpose is not stuck."

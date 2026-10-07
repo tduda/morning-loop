@@ -1,0 +1,55 @@
+schema_version: 1
+task: "any morning-loop drafter output"
+calibration_target: "the config's owner (owner.name, owner.role) could use, send or share it as-is, with no rewrite (the ship test)"
+created: 2026-10-05
+# The universal checks every drafter inherits. Skill rubrics add job-specific checks on top.
+# Calibration over time comes from the owner's saved examples in morning/examples/<skill>/.
+checks:
+  - id: grounded
+    type: structural
+    severity: block
+    scope: data
+    statement: "No invented or guessed value is presented as real. Every figure, name, date and status is either a value read from a source in this run, or an explicitly labelled gap (for example 'not checked', 'not set', 'unassigned', '[NEEDS INPUT: reason]', 'ASK {person}: {closed question}'). An unlabelled placeholder, a bare TODO, a bracketed guess, or an estimate shown as data is a hard block; a clearly labelled gap passes."
+    rationale: "A single invented fact reaching a reader is the one failure that cannot be undone. A labelled gap is an honest handoff; a faked value is not."
+
+  - id: traceable
+    type: binary_llm
+    severity: block
+    scope: data
+    statement: "Every claim traces to a named source the reader could check: a task id, a message link, a meeting note or transcript, a metric query, a file path that was read, or a ledger line. No assertion floats free."
+    rationale: "Grounding and traceability are the two hard gates. Everything else can be revised; an untraceable claim cannot be verified, so it cannot be trusted."
+
+  - id: degraded_sources_declared
+    type: structural
+    severity: normal
+    scope: format
+    statement: "Any source the skill would normally read that was off or unavailable is named in the output (header line or source table), and nothing is invented to cover for it. A silently thin output fails."
+    rationale: "A short output with no explanation reads as a quiet day. Saying what was not read is what lets the owner trust what was."
+
+  - id: complete
+    type: structural
+    severity: normal
+    scope: format
+    statement: "Every section the skill's output template requires is present. An empty section says it is empty ('none found', 'no decisions recorded') rather than being dropped."
+    rationale: "A missing section is indistinguishable from a skipped step."
+
+  - id: format_conformant
+    type: structural
+    severity: normal
+    scope: format
+    statement: "Matches the skill's output template and file location, and contains no em dashes or en dashes."
+    rationale: "Consistent shape lets the owner scan it in seconds. Em and en dashes are a common machine-writing tell in anything that gets shared."
+
+  - id: no_side_effects
+    type: structural
+    severity: block
+    scope: data
+    statement: "The draft records no action taken on the owner's behalf: nothing sent, posted, replied to, archived, marked read, moved, assigned or written to the ledger or config without a recorded per-item yes."
+    rationale: "Drafters draft. Everything that leaves the machine or changes shared state needs the owner's explicit yes, item by item."
+
+  - id: ready_to_ship
+    type: binary_llm
+    severity: gate
+    scope: voice
+    statement: "The reader the skill names as its audience could receive this as-is with no rewrite. It reads as the owner wrote it, in the voice shown by their examples in morning/examples/<skill>/ when any exist, not as a filled-in template."
+    rationale: "The ship test. Role-neutral by design: the voice to match is whoever owns the config, and the reader is whoever the skill names."

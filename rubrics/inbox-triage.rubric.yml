@@ -1,0 +1,56 @@
+schema_version: 1
+extends: _base
+task: "A triage digest of inbox and chat: a short state-of-things line, every item in needs-reply, decide, FYI or noise with WHAT, WHY and HOW and a link, and the owner's own promises captured as proposed ledger lines"
+calibration_target: "the owner reads the digest instead of the inbox, knows who is waiting and what decision is live, and nothing was touched on their behalf"
+created: 2026-10-05
+
+goldens: []
+# None shipped. Calibrate with the owner's re-bucketings (logged in morning/state/triage-log.md) and any
+# digests they mark as right in morning/examples/inbox-triage/. The first digest needing no correction
+# becomes golden 1.
+
+known_reject:
+  - "A digest that: opens with 'you have 41 messages'; lists 'reply to the vendor' and 'archive newsletters' as bare lines with no WHY or link; summarises a task notification from its subject line when the task tool was down, without saying so; tags three items as goal-related with no goal named; omits FYI and noise to stay short; misses the owner's own 'I'll send the numbers Thursday'; and marks two threads as read. Must fail why_and_link_on_every_item (gate), resolved_or_flagged (block), goal_link_real, nothing_hidden, promises_captured, and no_side_effects (block, from _base)."
+
+checks:
+  - id: why_and_link_on_every_item
+    type: binary_llm
+    severity: gate
+    scope: data
+    statement: "Every item in every bucket has a WHAT, a WHY naming the signals that fired (waiting on you, goal link, time, ownership, reversibility), and a link. Needs-reply and decide items also have a HOW. No item is a bare action, and no WHY is just an adjective like 'important'."
+    rationale: "Comprehension first is the skill's one hard rule. A bare action trades understanding for speed."
+
+  - id: bucket_fits
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Needs-reply items have someone actually waiting on an answer only the owner can give; decide items have a real choice with options or a window; nothing waiting on the owner sits in FYI or noise."
+    rationale: "A buried needs-reply item is the costliest triage error."
+
+  - id: resolved_or_flagged
+    type: binary_llm
+    severity: block
+    scope: data
+    statement: "A notification about a task or document is judged on the object's current state; if the object could not be read, the item is marked 'unresolved' and nothing about its state is claimed from the subject line."
+    rationale: "A subject line is a stale snapshot. A summary built on it is an invented current state."
+
+  - id: goal_link_real
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Every claimed goal link names the goal from the profile and the words that matched. With no goals in the profile, the digest says it ranked without them."
+    rationale: "An unexplained goal tag promotes the wrong item to the top of the day."
+
+  - id: nothing_hidden
+    type: structural
+    severity: normal
+    scope: format
+    statement: "FYI and noise are present (noise grouped with counts). No bucket is dropped to shorten the digest."
+    rationale: "An omitted item is one the owner never learns existed."
+
+  - id: promises_captured
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Commitments the owner made in their own sent messages within the window appear as proposed ledger lines with the quote, recipient and due date (or 'not set'). If sent items were not readable, the digest says so."
+    rationale: "Forgotten promises are the most common way small trust gets lost. Catching them is half this skill's value."

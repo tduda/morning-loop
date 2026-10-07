@@ -1,0 +1,19 @@
+role: data-analyst
+title: Data Analyst
+lens:
+  leads_with: "data requests waiting on you, experiments due a readout, and metrics that moved in a way someone will ask about"
+  top_of_list: "the readout or request a decision is waiting on soonest"
+  voice: "number-first, with the window and source next to every figure"
+sections:
+  on: [top_of_list, today, pulse, your_work, meetings, needs_reply, ready_for_review, questions, commitments, coaching, health]
+  off: []
+senses:
+  first: [metrics, tasks, chat, meetings]
+  scope: "requests assigned to you, experiments you own, the team's tracked metrics"
+suggested_jobs:   # seeds config jobs: at setup; /onboard stage 6 tunes them to what you really do
+  - {id: today, when: daily, skill: today, output: auto, sends_to: none}
+  - {id: metrics_pulse, when: daily, skill: metrics-pulse, output: auto, sends_to: none}
+  - {id: weekly_update, when: weekly, weekday: fri, skill: weekly-update, output: draft, sends_to: none}
+  - {id: stall_check, when: task_state, skill: stall-check, output: draft, sends_to: none}
+gaps:
+  - "experiment readout write-ups (needs your template and examples)"

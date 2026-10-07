@@ -1,0 +1,11 @@
+# your workspace never lives in the package, but guard anyway
+morning/
+# filled-in runners and plists carry your absolute paths
+scripts/run-prep.sh
+scripts/run-prep.ps1
+scripts/register-prep-task.ps1
+*.plist
+!scripts/*.plist.template
+__pycache__/
+*.pyc
+.DS_Store

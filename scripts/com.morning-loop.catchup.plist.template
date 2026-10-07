@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  com.morning-loop.catchup.plist: the retry that makes the morning brief arrive.
+
+  Why it exists. The prep job fires once, at a fixed time. On a laptop that time
+  usually lands in a DarkWake on battery: the Mac is awake for seconds, the login
+  keychain is locked, Wi-Fi is down, and the run dies or never starts. On the first
+  loop that produced 7 missed mornings in 3 weeks, reported as "login expired" and
+  "Mac slept mid-run", which turned out to be the same cause.
+
+  This job changes the trigger from "it is 07:52" to "the Mac is really awake and
+  a brief is still owed". launchd coalesces StartInterval across sleep, so the
+  first genuine wake after you open the lid runs it. It is safe to fire every 15
+  minutes because `run-prep.sh --if-missing` exits at once, silently, unless it is
+  a weekday, between 07:45 and 12:00, today's receipt does not say "sent", and no
+  other run holds the lock. On a normal day it does nothing.
+
+  FILL: replace __RUN_PREP_PATH__ and __LOG_PATH__ with absolute paths (no ~).
+
+  Install next to the prep job, never instead of it:
+      cp com.morning-loop.catchup.plist ~/Library/LaunchAgents/
+      launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.morning-loop.catchup.plist
+      launchctl list | grep -i morning        # expect TWO entries: prep and catchup
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.morning-loop.catchup</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>__RUN_PREP_PATH__</string>
+        <string>--if-missing</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>900</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__LOG_PATH__</string>
+    <key>StandardErrorPath</key>
+    <string>__LOG_PATH__</string>
+</dict>
+</plist>

@@ -1,0 +1,20 @@
+role: engineer
+title: Engineer / Developer
+lens:
+  leads_with: "your tickets: what is assigned to you, waiting on your review, or blocked, and what the sprint goal needs from you today"
+  top_of_list: "the one ticket or review that unblocks the sprint goal or a teammate soonest"
+  voice: "ticket-first and short: key-free names, the state, the next action"
+sections:
+  on: [top_of_list, today, your_work, meetings, needs_reply, ready_for_review, questions, commitments, coaching, health]
+  off: [pulse]
+senses:
+  first: [tasks, chat, meetings]
+  scope: "tickets assigned to you or in your review queue first, then the rest of the team's board"
+suggested_jobs:   # seeds config jobs: at setup; /onboard stage 6 tunes them to what you really do
+  - {id: today, when: daily, skill: today, output: auto, sends_to: none}
+  - {id: stall_check, when: task_state, skill: stall-check, output: draft, sends_to: none}
+  - {id: meeting_debrief, when: meeting_new, skill: meeting-debrief, output: draft, sends_to: none}
+  - {id: inbox_triage, when: daily, skill: inbox-triage, output: auto, sends_to: none}
+gaps:
+  - "pull request and code review digest (no shipped skill yet)"
+  - "release notes from merged work"

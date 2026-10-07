@@ -1,0 +1,20 @@
+role: scrum-master
+title: Scrum Master / Delivery Lead
+lens:
+  leads_with: "sprint health: the goal at risk, stalled tickets, missing estimates, and today's ceremony"
+  top_of_list: "the impediment that, if cleared today, protects the sprint goal most"
+  voice: "board-first: what is stuck, for how long, who can move it"
+sections:
+  on: [top_of_list, today, your_work, meetings, needs_reply, ready_for_review, questions, commitments, coaching, health]
+  off: [pulse]
+senses:
+  first: [tasks, meetings, chat]
+  scope: "the whole team board, and the ceremony notes you own"
+suggested_jobs:   # seeds config jobs: at setup; /onboard stage 6 tunes them to what you really do
+  - {id: today, when: daily, skill: today, output: auto, sends_to: none}
+  - {id: stall_check, when: task_state, skill: stall-check, output: draft, sends_to: none}
+  - {id: meeting_prep, when: calendar, skill: meeting-prep, output: draft, sends_to: none}
+  - {id: meeting_debrief, when: meeting_new, skill: meeting-debrief, output: draft, sends_to: none}
+  - {id: weekly_update, when: weekly, weekday: fri, skill: weekly-update, output: draft, sends_to: none}
+gaps:
+  - "sprint report and retro synthesis (no shipped skill yet)"

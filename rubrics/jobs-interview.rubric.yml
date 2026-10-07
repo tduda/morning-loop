@@ -1,0 +1,82 @@
+schema_version: 1
+extends: _base
+task: "Onboarding stage 6: the owner's recurring jobs at buildable altitude (what, how often, inputs, output, who receives it), each graded for automation, skill match and examples needed, plus routing rules in the config jobs shape"
+calibration_target: "the owner recognises every job as theirs, agrees with every grade, and can approve the routing block into config.yml without editing it"
+created: 2026-10-05
+
+goldens: []
+# None shipped. Golden 1 is the first jobs list an owner approved with no more than one correction.
+
+known_reject:
+  - "A jobs list that: includes 'manage stakeholders' and 'drive strategy' as jobs; routes 'quarterly budget review' to a skill called budget-review that is not installed; marks the weekly update automated because the weekly-update skill exists, though no examples are saved and the owner rewrites it each time; sets sends_to: email on a job the owner never mentioned sending; writes the rules straight into config.yml; and drops the two jobs with no skill instead of commenting them out. Must fail no_invented_skill (block), buildable_altitude, honest_automation_grade, examples_need_flagged, sends_to_conservative (block), config_write_gated (block), and unmatched_jobs_commented."
+
+checks:
+  - id: evidence_per_job
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Every job cites the evidence that suggested it (ledger lines, briefs, recurring events, files) or is marked as added by the owner in the interview."
+    rationale: "Jobs drafted from evidence are the owner's real week; jobs drafted from a role description are someone else's."
+
+  - id: buildable_altitude
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Every job has a concrete what, cadence, inputs, output and recipient. Vague jobs ('manage X', 'own Y') are decomposed or fail."
+    rationale: "Nothing can be routed against a job with no inputs or output."
+
+  - id: meetings_split
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Recurring meetings appear as human jobs, with their prep and follow-up listed as separate jobs where they exist."
+    rationale: "The meeting stays human; the work around it is where the loop helps."
+
+  - id: no_invented_skill
+    type: structural
+    severity: block
+    scope: data
+    statement: "Every skill named in the jobs table or routing rules exists in the installed skills/ folder, and its description covers the job. Jobs with no match say 'none'."
+    rationale: "A rule pointing at a skill that does not exist fails silently every morning."
+
+  - id: honest_automation_grade
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Automatable is graded yes, partly or no with a reason. A job is not called automated just because a matching skill exists; judgement and relationship work is graded no or partly."
+    rationale: "Overstating automation is the most common way this list goes wrong."
+
+  - id: examples_need_flagged
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Any job whose output must sound like the owner or match a house format, and whose morning/examples/<skill>/ folder is empty, is marked 'examples first' with how many to save."
+    rationale: "Without examples a voice-dependent draft is generic, and generic drafts get rewritten."
+
+  - id: routing_shape_exact
+    type: structural
+    severity: normal
+    scope: format
+    statement: "Routing rules use exactly the fields id, when, weekday (weekly only), skill, output, sends_to, with when in daily, weekly, calendar, task_state, meeting_new, metric_move and output in draft, auto, decide, human. The block parses as YAML."
+    rationale: "The engine reads this block directly. A field it does not know is a rule that never fires."
+
+  - id: sends_to_conservative
+    type: structural
+    severity: block
+    scope: data
+    statement: "sends_to is 'none' unless the owner named the tool, and output is never 'auto' for anything that would leave the machine."
+    rationale: "Defaults that send are how a draft reaches someone before the owner saw it."
+
+  - id: unmatched_jobs_commented
+    type: structural
+    severity: normal
+    scope: format
+    statement: "Jobs with no skill appear in the routing block commented out, each with its reason."
+    rationale: "The owner should see what the loop cannot do yet, not have it disappear."
+
+  - id: config_write_gated
+    type: structural
+    severity: block
+    scope: data
+    statement: "config.yml was not changed unless the output records the owner's yes, and no existing job id was overwritten without showing the difference."
+    rationale: "Config is the owner's. A silent write changes what runs every morning."

@@ -1,0 +1,69 @@
+schema_version: 1
+extends: _base
+task: "A meeting debrief: source classification (transcript or summary), decisions with owner and confidence, action items with owner and due, open questions with who can answer, draft tasks (stubs when the source is a summary), and proposed ledger lines"
+calibration_target: "the owner can assign the actions, log the decisions and create the tasks without going back to the notes, and nothing in it claims more than the meeting said"
+created: 2026-10-05
+
+goldens: []
+# None shipped. Golden 1 is the first debrief whose actions the owner accepted unchanged. Save debriefs
+# the owner wrote or approved to morning/examples/meeting-debrief/ and recalibrate.
+
+known_reject:
+  - "A debrief of AI-generated meeting notes that: does not say the source is a summary; quotes two attendees by name; records 'we will launch in March' as a firm decision when the notes say it was discussed; lists 'follow up on pricing' with no owner and no date; guesses 'due Friday' for an action whose date was never said; and drafts a task with five detailed acceptance criteria marked ready to create. Must fail source_classified, summary_tasks_are_stubs (block), no_invented_content (block), no_quotes_from_summaries (block), decision_owner_confidence, and action_item_owned."
+
+checks:
+  - id: source_classified
+    type: structural
+    severity: normal
+    scope: format
+    statement: "The output states at the top whether the source is a verbatim transcript or a summary, and where it came from. A source with no speaker turns is treated as a summary."
+    rationale: "Every downstream rule depends on this one line. Unclassified sources are how paraphrase turns into quotes and criteria."
+
+  - id: summary_tasks_are_stubs
+    type: structural
+    severity: block
+    scope: data
+    statement: "When the source is a summary, every draft task is a stub with exactly one acceptance criterion, 'confirm scope with <owner>', and is not marked ready to create. Any additional criterion on a summary-sourced task fails."
+    rationale: "A summary does not carry scope. Plausible criteria invented from it read as agreed requirements and get built."
+
+  - id: no_invented_content
+    type: binary_llm
+    severity: block
+    scope: data
+    statement: "Every decision, action, question and task traces to something present in the notes. Nothing is added to fill a section; an empty section says so."
+    rationale: "An invented decision in a decision log is the unrecoverable debrief failure."
+
+  - id: no_quotes_from_summaries
+    type: binary_llm
+    severity: block
+    scope: data
+    statement: "No quotation is attributed to a named person unless the source is a verbatim transcript."
+    rationale: "Paraphrase attributed as a quote puts words in someone's mouth."
+
+  - id: decision_owner_confidence
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Each decision names its owner and a confidence (firm, tentative, unclear), and was actually reached rather than discussed."
+    rationale: "Promoting discussion to decision is the classic debrief over-claim."
+
+  - id: action_item_owned
+    type: binary_llm
+    severity: gate
+    scope: data
+    statement: "Every action has an owner (or 'unassigned', mirrored as an open question 'who owns this?') and a due date (or 'not set'). No guessed owners, no guessed dates, no unowned 'we should'."
+    rationale: "An action without an owner is not tracked. A guessed owner is worse: it is assigned to someone who never agreed."
+
+  - id: open_question_has_resolver
+    type: binary_llm
+    severity: normal
+    scope: data
+    statement: "Each open question names who can answer it and what waits on the answer."
+    rationale: "A question with no resolver is a note, not an open item."
+
+  - id: ledger_lines_proposed_not_written
+    type: structural
+    severity: normal
+    scope: format
+    statement: "Commitments to and from the owner appear as proposed ledger lines (checkboxes) for the owner to accept; the ledger itself was not edited."
+    rationale: "The ledger is the owner's memory. Only they decide what goes in it."
